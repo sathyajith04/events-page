@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EVENTS</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jura:wght@300..700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <canvas id="bg"></canvas>
+    <header>
+        <!--<img src="assets/evnt_logo.png" alt="SRiSHTi 2K25 Logo" class="main-logo">-->
+        <p class="header-text">EVENTS</p>
+    </header>
+
+    <div id="cube-view" class="view-container">
+        <h2 class="instruction-text">
+            ROTATE THE CUBE TO EXPLORE EVENTS
+        </h2>
+        <div class="scene">
+            <div class="cube">
+                <div class="cube__face cube__face--front" data-target="flagship">Flagship</div>
+                <div class="cube__face cube__face--back" data-target="paper">Paper Presentation</div>
+                <div class="cube__face cube__face--right" data-target="workshop">Workshop</div>
+                <div class="cube__face cube__face--left" data-target="technical">Technical</div>
+                <div class="cube__face cube__face--top" data-target="non-technical">Non-Technical</div>
+                <div class="cube__face cube__face--bottom" data-target="gaming">Gaming</div>
+            </div>
+            <div class="cube-controls">
+                <button class="control-btn" id="rotate-up"><</button>
+                <button class="control-btn" id="rotate-down"><</button>
+                <button class="control-btn" id="rotate-left"><</button>
+                <button class="control-btn" id="rotate-right"><</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="events-view">
+        <div class="events-header">
+            <h2 id="current-section-title">Events</h2>
+            <button id="back-to-cube-btn">
+                < Back to Cube</button>
+        </div>
+        <main id="event-sections-container">
+            <!-- Event sections and their cards will be dynamically generated here by JavaScript -->
+        </main>
+    </div>
+
+    <!--<footer
+        style="text-align: center; padding: 1rem; margin-top: 50px; font-size: 0.9rem; color: rgba(255,255,255,0.5);">
+        © Copyright | SRiSHTi 2k25
+    </footer>-->
+
+    <script src="script.js"></script>
+</body>
+
+</html>

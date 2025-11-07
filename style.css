@@ -1,0 +1,1213 @@
+/* --- Root Variables & Global Resets --- */
+:root {
+    --cube-size: 200px;
+    --half-cube-size: calc(var(--cube-size) / 2);
+    /* Default theme color, overridden by active section */
+    --current-theme-color: #ffd452;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background: #000;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: #fff;
+    background: #000;
+    overflow: hidden;
+    /* Prevent scrolling on main page */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* Needed for absolute positioning of events-view */
+    z-index: -1;
+}
+
+/* --- Canvas Background for Particles --- */
+canvas#bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+/* --- Header Section Styling --- */
+header {
+    text-align: center;
+    padding: 2rem 1rem 0rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/*header .main-logo {
+            width: clamp(200px, 50vw, 300px);
+            height: auto;
+        }*/
+
+header .header-text {
+    font-family: 'Jura', sans-serif;
+    font-size: clamp(3rem, 8vw, 3rem);
+    font-weight: 700;
+    background: linear-gradient(to right, #ffd452, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 3px;
+    text-shadow: 0 0 8px rgba(255, 212, 82, 0.5), 0 0 15px rgba(255, 107, 107, 0.3);
+    animation: pulse-glow 3s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    0% {
+        text-shadow: 0 0 8px rgba(255, 212, 82, 0.5), 0 0 15px rgba(255, 107, 107, 0.3);
+        transform: scale(1);
+    }
+
+    100% {
+        text-shadow: 0 0 12px rgba(255, 212, 82, 0.7), 0 0 20px rgba(255, 107, 107, 0.5);
+        transform: scale(1.01);
+    }
+}
+
+/* --- Main Content View Containers --- */
+.view-container {
+    flex-grow: 1;
+    display: grid;
+    place-items: center;
+}
+
+#cube-view {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out, filter 0.5s ease-out;
+    gap: 0.5rem;
+    position: relative;
+}
+
+#events-view {
+    display: none;
+    position: absolute;
+    /* Overlay the cube view */
+    inset: 0;
+    /* Take up full parent space */
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(2.5px);
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+    z-index: 10;
+    /* Ensure it's above the cube view */
+}
+
+/* Animation for events-view fading out */
+@keyframes fadeOutEventsView {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.events-view.is-closing {
+    animation: fadeOutEventsView 0.5s ease-out forwards;
+    /* Match duration of cube-view transition */
+}
+
+/* --- View Switching Animations --- */
+body.show-events #cube-view {
+    opacity: 1;
+    filter: blur(5px);
+    pointer-events: none;
+    transition: filter 0.5s ease-out;
+}
+
+body.show-events #events-view {
+    display: block;
+    opacity: 1;
+}
+
+/* --- Cube View Instruction Text --- */
+#cube-view .instruction-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    font-weight: 350;
+    background: linear-gradient(to right, #ffd452, #f17171);
+    /*color:  #3cfce2;*/
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 0 rgba(255, 212, 82, 0.5), 0 0 0 rgba(255, 107, 107, 0.3);
+    animation: pulse-glow 3s infinite alternate;
+    text-align: center;
+    margin-top: -4rem;
+    margin-bottom: 7rem;
+    /* Space below the text */
+}
+
+/* --- 3D Cube Styles --- */
+.scene {
+    width: var(--cube-size);
+    height: var(--cube-size);
+    perspective: calc(var(--cube-size) * 4);
+    position: relative;
+    /* Needed for positioning cube-controls inside */
+}
+
+.cube {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: translateZ(calc(-1 * var(--half-cube-size)));
+    transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.cube__face {
+    position: absolute;
+    width: var(--cube-size);
+    height: var(--cube-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.5rem;
+    font-weight: 350;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    border: 2px solid;
+    background: rgba(20, 20, 30, 0.7);
+    backdrop-filter: blur(5px);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.cube__face:hover {
+    background: rgba(50, 50, 80, 0.9);
+    border-color: white !important;
+}
+
+/* Cube Face Colors */
+.cube__face--front {
+    transform: rotateY(0deg) translateZ(var(--half-cube-size));
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.cube__face--right {
+    transform: rotateY(90deg) translateZ(var(--half-cube-size));
+    border-color: #54a0ff;
+    color: #54a0ff;
+}
+
+.cube__face--back {
+    transform: rotateY(180deg) translateZ(var(--half-cube-size));
+    border-color: #f7971e;
+    color: #f7971e;
+}
+
+.cube__face--left {
+    transform: rotateY(-90deg) translateZ(var(--half-cube-size));
+    border-color: #1dd1a1;
+    color: #1dd1a1;
+}
+
+.cube__face--top {
+    transform: rotateX(90deg) translateZ(var(--half-cube-size));
+    border-color: #fc8a2c;
+    color: #fc8a2c;
+}
+
+.cube__face--bottom {
+    transform: rotateX(-90deg) translateZ(var(--half-cube-size));
+    border-color: #a29bfe;
+    color: #a29bfe;
+}
+
+/* --- UI Controls for Cube --- */
+.cube-controls {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Center the container */
+    width: calc(var(--cube-size) * 2);
+    /* Increased size for more space */
+    height: calc(var(--cube-size) * 2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    /* Allows clicks to pass through to the cube if needed */
+}
+
+.control-btn {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    font-family: 'Poppins', 'sans-serif';
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgb(59, 220, 231);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: all;
+    /* Ensure buttons are clickable */
+    font-size: 1.1rem;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.control-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Positions relative to the larger cube-controls container */
+#rotate-up {
+    top: 0;
+    transform: rotate(90deg);
+    /* Rotate '<' to point up */
+}
+
+#rotate-down {
+    bottom: 0;
+    transform: rotate(-90deg);
+    /* Rotate '<' to point down */
+}
+
+#rotate-left {
+    left: 0;
+    transform: rotate(0deg);
+    /* '<' already points left */
+}
+
+#rotate-right {
+    right: 0;
+    transform: rotate(180deg);
+    /* Rotate '<' to point right */
+}
+
+/* --- Events View Header --- */
+.events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+
+#current-section-title {
+    font-size: 2rem;
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(to right, #ffd452, #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 8px rgba(255, 212, 82, 0.5), 0 0 15px rgba(255, 107, 107, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Themed styling for current-section-title */
+.events-header.pink-theme #current-section-title {
+    background: linear-gradient(to right, #ff6b6b, #f35757);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.events-header.blue-theme #current-section-title {
+    background: linear-gradient(to right, #54a0ff, #4a90e2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(84, 160, 255, 0.5);
+}
+
+.events-header.paper-theme #current-section-title {
+    background: linear-gradient(to right, #feca57, #f8cf77);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(247, 151, 30, 0.5);
+}
+
+.events-header.teal-theme #current-section-title {
+    background: linear-gradient(to right, #1dd1a1, #66bb6a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(29, 209, 161, 0.5);
+}
+
+.events-header.orange-theme #current-section-title {
+    background: linear-gradient(to right, #fc7a3e, #fc915f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px #fc7a3e88;
+}
+
+.events-header.violet-theme #current-section-title {
+    background: linear-gradient(to right, #ba68c8, #dd80ee);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(162, 155, 254, 0.5);
+}
+
+
+#back-to-cube-btn {
+    font-family: 'Poppins', 'sans-serif';
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* Themed hover for back-to-cube button */
+.events-header.pink-theme #back-to-cube-btn:hover {
+    background: #ff6b6b;
+    color: white;
+    border-color: #ff6b6b;
+}
+
+.events-header.blue-theme #back-to-cube-btn:hover {
+    background: #54a0ff;
+    color: white;
+    border-color: #54a0ff;
+}
+
+.events-header.paper-theme #back-to-cube-btn:hover {
+    background: #feca57;
+    color: white;
+    border-color: #feca57;
+}
+
+.events-header.teal-theme #back-to-cube-btn:hover {
+    background: #1dd1a1;
+    color: white;
+    border-color: #1dd1a1;
+}
+
+.events-header.orange-theme #back-to-cube-btn:hover {
+    background: #fc7a3e;
+    color: white;
+    border-color: #fc7a3e;
+}
+
+.events-header.violet-theme #back-to-cube-btn:hover {
+    background: #ba68c8;
+    color: white;
+    border-color: #ba68c8;
+}
+
+
+/* --- Event Section Styling (now without a redundant h2) --- */
+.event-section {
+    display: none;
+    padding: 2rem;
+    max-width: 1300px;
+    margin: auto;
+}
+
+.event-section.active {
+    display: block;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* --- Grid Layout for Cards --- */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    justify-items: center;
+}
+
+/* --- Card Effects --- */
+.card-effect {
+    perspective: 1000px;
+}
+
+.card-inner {
+    width: 280px;
+    height: 380px;
+    background: #1a1a1a;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+        box-shadow 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'Poppins', sans-serif;
+    transform-style: preserve-3d;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-inner:hover {
+    transform: rotateY(10deg) rotateX(10deg) translateZ(10px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Card specific hover title colors (based on theme class) */
+.card-inner.pink:hover .card__title {
+    color: #ff6b6b;
+}
+
+.card-inner.blue:hover .card__title {
+    color: #54a0ff;
+}
+
+.card-inner.paper:hover .card__title {
+    color: #feca57;
+}
+
+.card-inner.teal:hover .card__title {
+    color: #1dd1a1;
+}
+
+.card-inner.orange:hover .card__title {
+    color: #fc7a3e;
+}
+
+.card-inner.violet:hover .card__title {
+    color: #ba68c8;
+}
+
+/* Liquid effect colors (based on theme class) */
+.card__liquid {
+    position: absolute;
+    top: -80px;
+    left: 0;
+    width: 300px;
+    height: 250px;
+    border-radius: 50%;
+    transform: translateZ(-80px);
+    filter: blur(80px);
+    transition:
+        transform 0.7s cubic-bezier(0.36, 0, 0.66, -0.56),
+        opacity 0.3s ease-in-out;
+    opacity: 0;
+}
+
+.card-inner.pink .card__liquid {
+    background: #ff6b6b;
+}
+
+.card-inner.blue .card__liquid {
+    background: #4a90e2;
+}
+
+.card-inner.paper .card__liquid {
+    background: #feca57;
+}
+
+.card-inner.teal .card__liquid {
+    background: #1dd1a1;
+}
+
+.card-inner.orange .card__liquid {
+    background: #fc7a3e;
+}
+
+.card-inner.violet .card__liquid {
+    background: #ba68c8;
+}
+
+.card-inner:hover .card__liquid {
+    transform: translateZ(-50px) translateY(30px) translateX(-20px) rotate(-20deg) scale(1.2);
+    opacity: 0.7;
+}
+
+/* Shine effect */
+.card__shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.1) 30%,
+            rgba(255, 255, 255, 0.6) 50%,
+            rgba(255, 255, 255, 0.1) 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.card-inner:hover .card__shine {
+    opacity: 1;
+    animation: shine-effect 2s infinite linear;
+}
+
+/* Glow effect colors (based on theme class) */
+.card__glow {
+    position: absolute;
+    inset: -15px;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+}
+
+.card-inner.pink .card__glow {
+    background: radial-gradient(circle at 50% 0%, #9b3d3d 0%, transparent 60%);
+}
+
+.card-inner.blue .card__glow {
+    background: radial-gradient(circle at 50% 0%, rgba(84, 160, 255, 0.4) 0%, transparent 60%);
+}
+
+.card-inner.paper .card__glow {
+    background: radial-gradient(circle at 50% 0%, #e0b047 0%, transparent 60%);
+}
+
+.card-inner.teal .card__glow {
+    background: radial-gradient(circle at 50% 0%, rgba(29, 209, 161, 0.4) 0%, transparent 60%);
+}
+
+.card-inner.orange .card__glow {
+    background: radial-gradient(circle at 50% 0%, #db632c 0%, transparent 60%);
+}
+
+.card-inner.violet .card__glow {
+    background: radial-gradient(circle at 50% 0%, rgba(162, 155, 254, 0.4) 0%, transparent 60%);
+}
+
+.card-inner:hover .card__glow {
+    opacity: 1;
+}
+
+/* Card content */
+.card__content {
+    padding: 1.5em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8em;
+    position: relative;
+    z-index: 2;
+    flex-grow: 1;
+}
+
+.card__badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #f9a825;
+    color: white;
+    padding: 0.3em 0.6em;
+    border-radius: 999px;
+    font-size: 0.8em;
+    font-weight: 600;
+    transform: scale(0.7);
+    opacity: 0;
+    transition: all 0.5s ease 0.2s;
+}
+
+.card-inner:hover .card__badge {
+    transform: scale(1);
+    opacity: 1;
+    z-index: 1;
+}
+
+.card__image {
+    width: 100%;
+    height: 180px;
+    background: var(--bg-color);
+    border-radius: 15px;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-inner:hover .card__image {
+    transform: translateY(-8px) scale(1.05);
+}
+
+.card__image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 80%,
+            rgba(255, 255, 255, 0.25) 0%,
+            transparent 40%),
+        repeating-linear-gradient(-45deg,
+            rgba(255, 255, 255, 0.1) 0px,
+            rgba(255, 255, 255, 0.1) 3px,
+            transparent 3px,
+            transparent 6px);
+    opacity: 1;
+    mix-blend-mode: overlay;
+}
+
+.card__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    flex-grow: 1;
+}
+
+.card__title {
+    font-size: 1.2em;
+    margin: 0;
+    font-weight: 700;
+    transition:
+        color 0.4s ease-in-out,
+        transform 0.4s ease-in-out;
+    color: #f0f0f0;
+}
+
+.card-inner:hover .card__title {
+    transform: translateX(3px);
+}
+
+.card__description {
+    font-size: 0.85em;
+    margin: 0;
+    opacity: 0.8;
+    transition:
+        opacity 0.4s ease-in-out,
+        transform 0.4s ease-in-out;
+    color: #ccc;
+}
+
+.card-inner:hover .card__description {
+    opacity: 1;
+    transform: translateX(3px);
+}
+
+/* --- View Details Button on Card --- */
+.card__button {
+    font-family: 'Poppins', 'sans-serif';
+    font-size: 0.9em;
+    font-weight: 500;
+    color: white;
+    border-radius: 15px;
+    width: 120px;
+    height: 32px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0.38rem 1rem;
+    transition:
+        background-color 0.3s,
+        transform 0.4s ease-in-out,
+        box-shadow 0.4s ease-in-out,
+        border-color 0.3s;
+}
+
+/* Base background colors for card buttons */
+.event-section.pink .card__button {
+    background: #ff6b6b;
+}
+
+.event-section.blue .card__button {
+    background: #4a90e2;
+}
+
+.event-section.paper .card__button {
+    background: #feca57;
+}
+
+.event-section.teal .card__button {
+    background: #1dd1a1;
+}
+
+.event-section.orange .card__button {
+    background: #fc7a3e;
+}
+
+.event-section.violet .card__button {
+    background: #ba68c8;
+}
+
+/* Hover effect: darken the themed background color */
+.card-inner:hover .card__button {
+    filter: brightness(0.8);
+    /* Darkens the current background color */
+    border-color: white;
+}
+
+
+/* --- Animations for card effects --- */
+@keyframes shine-effect {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(200%);
+    }
+}
+
+@keyframes pulse-button {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.15);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* --- Register button styling for ALL modals --- */
+.modal-register-btn {
+    color: white;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    margin-top: 2rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Specific colors for Register button (matching modal theme colors) */
+.modal-box.pink-theme .modal-register-btn {
+    background: #ff6b6b;
+}
+
+.modal-box.blue-theme .modal-register-btn {
+    background: #4a90e2;
+}
+
+.modal-box.paper-theme .modal-register-btn {
+    background: #feca57;
+}
+
+.modal-box.teal-theme .modal-register-btn {
+    background: #1dd1a1;
+}
+
+.modal-box.orange-theme .modal-register-btn {
+    background: #fc7a3e;
+}
+
+.modal-box.violet-theme .modal-register-btn {
+    background: #a29bfe;
+}
+
+.modal-register-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 20px var(--theme-color-glow);
+}
+
+/* Theme glow colors for register button hover */
+.modal-box.pink-theme {
+    --theme-color-glow: #ff6b6baa;
+}
+
+.modal-box.blue-theme {
+    --theme-color-glow: #4a90e2aa;
+}
+
+.modal-box.paper-theme {
+    --theme-color-glow: #feca57aa;
+}
+
+.modal-box.teal-theme {
+    --theme-color-glow: #1dd1a1aa;
+}
+
+.modal-box.orange-theme {
+    --theme-color-glow: #fc8a2caa;
+}
+
+.modal-box.violet-theme {
+    --theme-color-glow: #a29bfeaa;
+}
+
+
+/* === Modal Base Styles === */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+/* Modal Open/Close Animations */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+.modal.is-opening {
+    animation: modalFadeIn 0.3s ease-out forwards;
+}
+
+.modal.is-closing {
+    animation: modalFadeOut 0.3s ease-out forwards;
+}
+
+
+.modal-box {
+    background-color: rgba(10, 10, 20, 0.7);
+    color: white;
+    border-radius: 20px;
+    padding: 2.5em;
+    max-width: 650px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+    animation: modalPop 0.3s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Themed glowing border for modal-box */
+.modal-box.pink-theme {
+    box-shadow: 0 0 25px #ff6ba288, inset 0 0 10px #ff6ba244;
+    border-color: #ff6b6b;
+}
+
+.modal-box.blue-theme {
+    box-shadow: 0 0 25px #4a90e288, inset 0 0 10px #4a90e244;
+    border-color: #4a90e2;
+}
+
+.modal-box.paper-theme {
+    box-shadow: 0 0 25px #feca5788, inset 0 0 10px #f7971e44;
+    border-color: #feca57;
+}
+
+.modal-box.teal-theme {
+    box-shadow: 0 0 25px #1dd1a188, inset 0 0 10px #1dd1a144;
+    border-color: #1dd1a1;
+}
+
+.modal-box.orange-theme {
+    box-shadow: 0 0 25px #fc7a3e88, inset 0 0 10px #FF8C0044;
+    border-color: #fc7a3e;
+}
+
+.modal-box.violet-theme {
+    box-shadow: 0 0 25px #a29bfe88, inset 0 0 10px #a29bfe44;
+    border-color: #a29bfe;
+}
+
+
+@keyframes modalPop {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(1.5rem, 5vw, 1.8rem);
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+    background: linear-gradient(45deg, #fff, #ccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Modal Title themed colors for text glow (based on theme class) */
+.modal-box.pink-theme .modal-title {
+    background: linear-gradient(45deg, #ff6b6b, #ff9a9a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modal-box.blue-theme .modal-title {
+    background: linear-gradient(45deg, #54a0ff, #89c0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modal-box.paper-theme .modal-title {
+    background: linear-gradient(45deg, #f7971e, #ffb86c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modal-box.teal-theme .modal-title {
+    background: linear-gradient(45deg, #1dd1a1, #63e2b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modal-box.orange-theme .modal-title {
+    background: linear-gradient(45deg, #fc8a2c, #ffae6f);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.modal-box.violet-theme .modal-title {
+    background: linear-gradient(45deg, #a29bfe, #c6c2ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+/* === Close Button (prominent and styled) === */
+.modal-close {
+    position: absolute;
+    top: 2.5em;
+    right: 30px;
+    cursor: pointer;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.modal-close:hover {
+    transform: scale(1.2) rotate(90deg);
+}
+
+.modal-box.pink-theme .modal-close:hover {
+    color: #ff6b6b;
+}
+
+.modal-box.blue-theme .modal-close:hover {
+    color: #54a0ff;
+}
+
+.modal-box.paper-theme .modal-close:hover {
+    color: #feca57;
+}
+
+.modal-box.teal-theme .modal-close:hover {
+    color: #1dd1a1;
+}
+
+.modal-box.orange-theme .modal-close:hover {
+    color: #fc7a3e;
+}
+
+.modal-box.violet-theme .modal-close:hover {
+    color: #ba68c8;
+}
+
+.modal-close svg {
+    width: 80%;
+    height: 80%;
+}
+
+
+/* === Accordion Styles === */
+.accordion {
+    display: flex;
+    flex-direction: column;
+}
+
+.accordion-header {
+    padding: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+    align-items: center;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: background-color 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+/* Glassy hover effect for accordion header */
+.accordion-header:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+/* Themed accordion header text colors (based on modal theme class) */
+.modal-box.pink-theme .accordion-header {
+    color: #ff6b6b;
+}
+
+.modal-box.blue-theme .accordion-header {
+    color: #4a90e2;
+}
+
+.modal-box.paper-theme .accordion-header {
+    color: #feca57;
+}
+
+.modal-box.teal-theme .accordion-header {
+    color: #1dd1a1;
+}
+
+.modal-box.orange-theme .accordion-header {
+    color: #fc7a3e;
+}
+
+.modal-box.violet-theme .accordion-header {
+    color: #a29bfe;
+}
+
+
+.accordion-item.open .accordion-header {
+    font-weight: 600;
+}
+
+.accordion-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.accordion-item.open .accordion-icon {
+    transform: rotate(45deg);
+}
+
+/* Smooth accordion expansion */
+.accordion-body-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out;
+}
+
+.accordion-body {
+    padding: 1.5rem;
+    color: #ddd;
+    font-size: 0.95rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Specific text styles within accordion-body */
+.accordion-body h3 {
+    padding: 1rem 0;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.15rem;
+    font-size: 1.4rem !important;
+    line-height: 1.4;
+    color: #FF577A;
+    /* Highlight color */
+    text-align: center;
+}
+
+.accordion-body h6 {
+    padding-bottom: 1rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem !important;
+    font-weight: 600;
+    letter-spacing: 0.1rem;
+    line-height: 1.4;
+    color: #CA8EDC;
+    /* Sub-highlight color */
+    text-align: center;
+}
+
+.accordion-body p {
+    padding: 0.5rem 0;
+    font-size: 1em;
+    line-height: 1.6;
+}
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+
+    /* Adjust events header for mobile */
+    .events-header {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        /* Prevent wrapping for title and button */
+        justify-content: space-between;
+        padding: 0.8rem 1rem;
+        gap: 0.5rem;
+    }
+
+    #current-section-title {
+        font-size: clamp(1.2rem, 4.5vw, 1.5rem);
+        /* Smaller font size for mobile */
+        flex-shrink: 1;
+        /* Allow it to shrink if needed */
+        min-width: 0;
+        /* Prevent overflow */
+    }
+
+    #back-to-cube-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        /* Keep button text on one line */
+    }
+
+    /* Adjust control button size for mobile, if desired (optional) */
+    .control-btn {
+        font-size: 1.1rem;
+        /* Adjusted font size for new characters */
+    }
+}
