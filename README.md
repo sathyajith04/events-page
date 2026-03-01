@@ -1,4 +1,4 @@
-# 🎯 Events Page
+# Events Page
 
 An interactive **3D cube-based events showcase** built using **HTML, CSS, and JavaScript**. Each face of the cube represents a different event category, leading to dynamically generated event cards and detailed modal popups.
 
@@ -6,7 +6,7 @@ An interactive **3D cube-based events showcase** built using **HTML, CSS, and Ja
 
 ---
 
-## ⚡ Features
+## Features
 - Rotating 3D cube for exploring event categories  
 - Animated particle background  
 - Dynamic, responsive event cards  
@@ -16,14 +16,14 @@ An interactive **3D cube-based events showcase** built using **HTML, CSS, and Ja
 
 ---
 
-## ⚙️ Tech Stack
+## Tech Stack
 - HTML5  
 - CSS3  
 - JavaScript  
 
 ---
 
-## 🖼️ Preview
+## Preview
 
 - Cube View
 <img src="assets/Front Cube.PNG" alt="Cube View" width="600">
