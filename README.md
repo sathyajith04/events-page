@@ -2,8 +2,6 @@
 
 An interactive **3D cube-based events showcase** built using **HTML, CSS, and JavaScript**. Each face of the cube represents a different event category, leading to dynamically generated event cards and detailed modal popups.
 
-🔗 [Check Out!!](https://sathyajith04.github.io/events-page/)
-
 ---
 
 ## Features
